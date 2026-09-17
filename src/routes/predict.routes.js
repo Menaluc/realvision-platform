@@ -1,5 +1,6 @@
 const express = require("express");
 const multer = require("multer");
+const predictController = require("../controllers/predict.controller");
 
 const router = express.Router();
 
@@ -36,10 +37,10 @@ const upload = multer({
 });
 
 // Upload one video file
-router.post("/predict", upload.single("video"), (req, res) => {
-    console.log(req.file);
-
-    res.send("Video received");
-});
+router.post(
+    "/predict",
+    upload.single("video"),
+    predictController
+);
 
 module.exports = router;
