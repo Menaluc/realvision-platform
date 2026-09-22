@@ -1,6 +1,6 @@
-# RealVision API
+# RealVision
 
-Backend API for deepfake video detection.
+Deepfake video detection platform (backend API, with a client and cloud deployment planned).
 
 A client uploads a video, the Node.js API validates and forwards it to a Python ML inference service, and the predicted label (`real` / `fake`) with confidence is returned as JSON.
 

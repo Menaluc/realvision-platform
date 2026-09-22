@@ -8,7 +8,7 @@ const predictRouter = require("./routes/predict.routes");
 const app = express();
 
 app.get("/", (req, res) => {
-    res.send("RealVision API");
+    res.send("RealVision");
 });
 
 // Use prediction routes under /api

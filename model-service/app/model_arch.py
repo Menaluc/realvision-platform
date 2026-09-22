@@ -9,7 +9,7 @@ class VideoOnlyBaseline(nn.Module):
         # CNN feature extractor for each frame
         self.cnn = timm.create_model(
             backbone,
-            pretrained=True,
+            pretrained=False,
             num_classes=0,
             global_pool=""
         )

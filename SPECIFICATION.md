@@ -1,4 +1,4 @@
-# RealVision API Specification
+# RealVision Specification
 
 ## 1. Overview
 
@@ -158,7 +158,11 @@ Example:
 ```json
 {
   "prediction": "fake",
-  "confidence": 0.92
+  "confidence": 0.92,
+  "probabilities": {
+    "real": 0.08,
+    "fake": 0.92
+  }
 }
 ```
 
@@ -241,15 +245,17 @@ More specific errors will be added as the project grows.
 
 ## 10. Open Design Decisions
 
-The following decisions are still open:
+Resolved:
 
-- How the video will be transferred from Node.js to FastAPI
-- How video preprocessing will work
-- How frames will be selected from the video
-- How predictions from multiple frames will be combined
-- What the final prediction response structure will be
+- Video transfer from Node.js to FastAPI: `multipart/form-data` POST to `/predict`
+- Video preprocessing: uniform sampling of 16 frames, center-crop + resize to 224x224 (see `preprocess.py`)
+- Frame selection: uniform strategy over the full video (random strategy also implemented but unused)
+- Prediction response structure: `{ prediction, confidence, probabilities }`
+
+Still open:
+
 - Timeout behavior
-- Temporary file cleanup strategy
+- Temporary file cleanup strategy (currently deleted after each request; no retry/failure handling)
 - Maximum allowed video duration
 
 ---
