@@ -80,6 +80,37 @@ Node.js / Express
 Client
 ```
 
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    actor Client
+    participant Express as Node.js / Express
+    participant Multer
+    participant Service as inference.service
+    participant FastAPI
+    participant Model as PyTorch Model
+
+    Client->>Express: POST /api/predict (multipart/form-data, field "video")
+    Express->>Multer: upload.single("video")
+
+    alt invalid file (too large / wrong type)
+        Multer-->>Client: 413 / error response
+    else valid file
+        Multer->>Express: save to uploads/, req.file
+        Express->>Service: predictVideo(file.path)
+        Service->>FastAPI: POST /predict (video bytes)
+        FastAPI->>FastAPI: save to temp file
+        FastAPI->>Model: preprocess_video() + forward pass
+        Model-->>FastAPI: logits → prediction, confidence, probabilities
+        FastAPI-->>FastAPI: delete temp file
+        FastAPI-->>Service: JSON prediction result
+        Service-->>Express: prediction result
+        Express->>Express: delete uploads/ file
+        Express-->>Client: 200 OK { prediction, confidence, probabilities }
+    end
+```
+
 ---
 
 ## 5. Core Flow
