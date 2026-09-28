@@ -1,5 +1,6 @@
 require("dotenv").config();
 
+const path = require("path");
 const express = require("express");
 const multer = require("multer");
 
@@ -7,9 +8,8 @@ const predictRouter = require("./routes/predict.routes");
 
 const app = express();
 
-app.get("/", (req, res) => {
-    res.send("RealVision");
-});
+// Serve the frontend (public/index.html) at "/"
+app.use(express.static(path.join(__dirname, "..", "public")));
 
 // Use prediction routes under /api
 app.use("/api", predictRouter);
