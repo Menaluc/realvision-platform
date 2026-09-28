@@ -94,11 +94,19 @@ PORT=3000
 MODEL_SERVICE_URL=http://localhost:8000/predict
 ```
 
-Run the server:
+Run the server (development):
 
 ```bash
 npm run devStart
 ```
+
+Run the server (production):
+
+```bash
+npm start
+```
+
+Binds to `process.env.PORT` (falls back to `3000` if unset).
 
 The API will be available at `http://localhost:3000`.
 
@@ -111,11 +119,19 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Run the service:
+Run the service (development):
 
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
+
+Run the service (production):
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+No `--reload` in production, and binding to `0.0.0.0` (not the `127.0.0.1` default) is required so the service is reachable from outside the container.
 
 ## Status
 

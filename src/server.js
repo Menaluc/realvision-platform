@@ -1,10 +1,16 @@
 require("dotenv").config();
 
+const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const multer = require("multer");
 
 const predictRouter = require("./routes/predict.routes");
+
+// Ensure the uploads/ directory exists before any upload is handled
+// (not guaranteed to exist on a fresh clone/deploy since it's gitignored)
+const uploadsDir = path.join(__dirname, "..", "uploads");
+fs.mkdirSync(uploadsDir, { recursive: true });
 
 const app = express();
 
@@ -29,6 +35,8 @@ app.use((err, req, res, next) => {
     });
 });
 
-app.listen(3000, () => {
-    console.log("Server is running on port 3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
