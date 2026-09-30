@@ -1,10 +1,10 @@
-const fs = require("fs");
-const path = require("path");
-const express = require("express");
-const multer = require("multer");
-const { UPLOADS_DIR } = require("./config");
+import fs from "fs";
+import path from "path";
+import express from "express";
+import multer from "multer";
+import { UPLOADS_DIR } from "./config.js";
 
-const predictRouter = require("./routes/predict.routes");
+import predictRouter from "./routes/predict.routes.js";
 
 // Ensure the uploads/ directory exists before any upload is handled
 // (not guaranteed to exist on a fresh clone/deploy since it's gitignored)
@@ -13,7 +13,7 @@ fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 const app = express();
 
 // Serve the frontend (public/index.html) at "/"
-app.use(express.static(path.join(__dirname, "..", "public")));
+app.use(express.static(path.join(import.meta.dirname, "..", "public")));
 
 // Use prediction routes under /api
 app.use("/api", predictRouter);
@@ -33,4 +33,4 @@ app.use((err, req, res, next) => {
     });
 });
 
-module.exports = app;
+export default app;

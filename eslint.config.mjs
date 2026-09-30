@@ -1,24 +1,22 @@
 import js from "@eslint/js";
 import globals from "globals";
+import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
   {
-    files: ["src/**/*.{js,cjs}"],
-    plugins: { js },
-    extends: ["js/recommended"],
+    files: ["src/**/*.{js,ts}"],
+    extends: [js.configs.recommended, tseslint.configs.recommended],
     languageOptions: {
-      sourceType: "commonjs",
+      sourceType: "module",
       globals: globals.node
     },
     rules: {
-      "no-unused-vars": [
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
         "error",
         {
           argsIgnorePattern: "^next$",
         },]
     }
   }]);
-
-
-

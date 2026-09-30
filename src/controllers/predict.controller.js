@@ -1,5 +1,5 @@
-const fs = require("fs/promises");
-const inferenceService = require("../services/inference.service");
+import fs from "fs/promises";
+import * as inferenceService from "../services/inference.service.js";
 
 // Handle prediction request
 const predictController = async (req, res) => {
@@ -39,4 +39,4 @@ const predictController = async (req, res) => {
     }
 };
 
-module.exports = predictController;
+export default predictController;

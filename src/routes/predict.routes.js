@@ -1,8 +1,8 @@
-const express = require("express");
-const multer = require("multer");
-const { UPLOADS_DIR } = require("../config");
+import express from "express";
+import multer from "multer";
+import { UPLOADS_DIR } from "../config.js";
 
-const predictController = require("../controllers/predict.controller");
+import predictController from "../controllers/predict.controller.js";
 
 const router = express.Router();
 
@@ -45,4 +45,4 @@ router.post(
     predictController
 );
 
-module.exports = router;
+export default router;

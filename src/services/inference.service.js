@@ -1,4 +1,4 @@
-const fs = require("fs/promises");
+import fs from "fs/promises";
 
 // Process the uploaded video
 const predictVideo = async (filePath) => {
@@ -47,6 +47,6 @@ const predictVideo = async (filePath) => {
     return result;
 };
 
-module.exports = {
+export {
     predictVideo
 };
