@@ -1,7 +1,8 @@
 import fs from "fs/promises";
+import type { PredictionResult } from "../types/prediction.js";
 
 // Process the uploaded video
-const predictVideo = async (filePath) => {
+const predictVideo = async (filePath: string): Promise<PredictionResult> => {
     if (!filePath) {
         throw new Error("filePath is required");
     }
@@ -42,7 +43,7 @@ const predictVideo = async (filePath) => {
     }
 
     // Parse FastAPI response
-    const result = await response.json();
+    const result = (await response.json()) as PredictionResult;
 
     return result;
 };

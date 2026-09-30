@@ -1,8 +1,9 @@
 import fs from "fs/promises";
+import type { Request, Response } from "express";
 import * as inferenceService from "../services/inference.service.js";
 
 // Handle prediction request
-const predictController = async (req, res) => {
+const predictController = async (req: Request, res: Response) => {
     const file = req.file;
 
     // Check that a video was uploaded
@@ -22,7 +23,7 @@ const predictController = async (req, res) => {
     } catch (error) {
         // Handle errors from the service / FastAPI
         return res.status(500).json({
-            error: error.message
+            error: error instanceof Error ? error.message : "Unknown error"
         });
 
     } finally {
@@ -33,7 +34,7 @@ const predictController = async (req, res) => {
         } catch (cleanupError) {
             console.error(
                 "Failed to delete uploaded file:",
-                cleanupError.message
+                cleanupError instanceof Error ? cleanupError.message : cleanupError
             );
         }
     }

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import express from "express";
+import express, { type NextFunction, type Request, type Response } from "express";
 import multer from "multer";
 import { UPLOADS_DIR } from "./config.js";
 
@@ -19,7 +19,7 @@ app.use(express.static(path.join(import.meta.dirname, "..", "public")));
 app.use("/api", predictRouter);
 
 // Handle Multer errors
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     if (err instanceof multer.MulterError) {
         if (err.code === "LIMIT_FILE_SIZE") {
             return res.status(413).json({
