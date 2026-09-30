@@ -3,6 +3,7 @@ import request from "supertest";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import app from "../src/app.js";
 import { UPLOADS_DIR } from "../src/config.js";
+import type { PredictionResult } from "../src/types/prediction.js";
 
 // A tiny fake video (the content doesn't matter, only the mimetype)
 const fakeVideo = Buffer.from("fake video content");
@@ -50,7 +51,11 @@ describe("POST /api/predict", () => {
     });
 
     it("returns the model prediction and deletes the uploaded file", async () => {
-        const prediction = { label: "real", confidence: 0.93 };
+        const prediction: PredictionResult = {
+            prediction: "real",
+            confidence: 0.93,
+            probabilities: { real: 0.93, fake: 0.07 }
+        };
 
         // Replace the real call to FastAPI with a fake response
         const fetchMock = vi.fn().mockResolvedValue({
