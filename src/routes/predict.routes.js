@@ -1,5 +1,7 @@
 const express = require("express");
 const multer = require("multer");
+const { UPLOADS_DIR } = require("../config");
+
 const predictController = require("../controllers/predict.controller");
 
 const router = express.Router();
@@ -7,7 +9,7 @@ const router = express.Router();
 // Set where uploaded files will be saved
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads/");
+        cb(null, UPLOADS_DIR);
     },
 
     // Give each file a unique name

@@ -4,13 +4,16 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const multer = require("multer");
+const { UPLOADS_DIR } = require("./config");
+
 
 const predictRouter = require("./routes/predict.routes");
 
 // Ensure the uploads/ directory exists before any upload is handled
 // (not guaranteed to exist on a fresh clone/deploy since it's gitignored)
-const uploadsDir = path.join(__dirname, "..", "uploads");
-fs.mkdirSync(uploadsDir, { recursive: true });
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+
 
 const app = express();
 
