@@ -17,11 +17,16 @@ Client → Node.js / Express (Multer) → FastAPI → PyTorch model → Predicti
 ## Project Structure
 
 ```text
-src/                          Node.js API
-  server.js                   App entry point, error handling
-  routes/predict.routes.js    /predict route + Multer upload config
-  controllers/predict.controller.js
-  services/inference.service.js  Calls the FastAPI service
+src/                          Node.js API (TypeScript)
+  server.ts                   Entry point, starts the HTTP server
+  app.ts                      Express app, static files, error handling
+  config.ts                   Shared paths (uploads directory)
+  routes/predict.routes.ts    /predict route + Multer upload config
+  controllers/predict.controller.ts
+  services/inference.service.ts  Calls the FastAPI service
+  types/prediction.ts         PredictionResult type (FastAPI response)
+
+tests/                        API tests (Vitest + Supertest)
 
 model-service/                Python ML inference service
   app/main.py                 FastAPI app, /predict endpoint
@@ -63,14 +68,17 @@ Uploads one video for deepfake analysis.
 | --- | --- |
 | 400 | No file uploaded |
 | 413 | File exceeds 20MB |
+| 500 | File is not a video (`Only video files are allowed`) |
 | 500 | Inference service error / unexpected failure |
 
 ## Tech Stack
 
 **Node.js API**
+- TypeScript
 - Express 5
 - Multer (file uploads)
 - dotenv
+- Vitest + Supertest (tests)
 
 **ML Inference Service**
 - FastAPI + Uvicorn
@@ -103,10 +111,19 @@ npm run devStart
 Run the server (production):
 
 ```bash
+npm run build
 npm start
 ```
 
 Binds to `process.env.PORT` (falls back to `3000` if unset).
+
+Other scripts:
+
+```bash
+npm test            # run API tests
+npm run typecheck   # TypeScript type checking
+npm run lint        # ESLint
+```
 
 The API will be available at `http://localhost:3000`.
 
@@ -143,10 +160,11 @@ Implemented:
 - Node.js → FastAPI integration
 - Frame sampling and preprocessing pipeline
 - PyTorch video classification model + inference endpoint
+- Automated tests for the API layer
+- TypeScript migration of the Node.js API
 
 Planned:
 
-- Automated tests for the API layer
 - Stronger file validation
 - Temporary file cleanup guarantees on the FastAPI side
 - Request logging and better error responses
