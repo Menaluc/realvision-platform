@@ -1,8 +1,12 @@
 import fs from "fs/promises";
+import type { FileTypeResult } from "file-type";
 import type { PredictionResult } from "../types/prediction.js";
 
 // Process the uploaded video
-const predictVideo = async (filePath: string): Promise<PredictionResult> => {
+const predictVideo = async (
+    filePath: string,
+    videoType: FileTypeResult
+): Promise<PredictionResult> => {
     if (!filePath) {
         throw new Error("filePath is required");
     }
@@ -14,13 +18,14 @@ const predictVideo = async (filePath: string): Promise<PredictionResult> => {
 
     // Convert the file buffer into a Blob
     const videoBlob = new Blob([fileBuffer], {
-        type: "video/mp4"
+        type: videoType.mime
     });
 
     // Build multipart/form-data request
+    // (FastAPI uses the file extension when saving its temp copy)
     const formData = new FormData();
 
-    formData.append("video", videoBlob, "video.mp4");
+    formData.append("video", videoBlob, `video.${videoType.ext}`);
 
     // Get FastAPI URL from environment variables
     const modelServiceUrl = process.env.MODEL_SERVICE_URL;

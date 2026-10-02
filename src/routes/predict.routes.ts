@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { UPLOADS_DIR } from "../config.js";
+import { HttpError } from "../errors.js";
 
 import predictController from "../controllers/predict.controller.js";
 
@@ -19,12 +20,13 @@ const storage = multer.diskStorage({
     }
 });
 
-// Accept only video files
+// First check: reject files the client doesn't declare as video
+// (the real content is checked in the controller, after upload)
 const fileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
     if (file.mimetype.startsWith("video/")) {
         cb(null, true);
     } else {
-        cb(new Error("Only video files are allowed"));
+        cb(new HttpError(415, "Only video files are allowed"));
     }
 };
 

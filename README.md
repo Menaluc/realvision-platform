@@ -47,7 +47,7 @@ Uploads one video for deepfake analysis.
 - Field name: `video`
 - One video per request
 - Maximum size: 20MB
-- Video files only (checked by MIME type)
+- Video files only (checked by declared MIME type, then by the file's actual content)
 
 **Example response**
 
@@ -68,7 +68,8 @@ Uploads one video for deepfake analysis.
 | --- | --- |
 | 400 | No file uploaded |
 | 413 | File exceeds 20MB |
-| 500 | File is not a video (`Only video files are allowed`) |
+| 415 | File is not declared as a video (`Only video files are allowed`) |
+| 415 | File content is not a real video (`File content is not a valid video`) |
 | 500 | Inference service error / unexpected failure |
 
 ## Tech Stack
@@ -162,10 +163,10 @@ Implemented:
 - PyTorch video classification model + inference endpoint
 - Automated tests for the API layer
 - TypeScript migration of the Node.js API
+- File content validation (detects the real video type from the file's bytes)
+- Temporary file cleanup on the FastAPI side
 
 Planned:
 
-- Stronger file validation
-- Temporary file cleanup guarantees on the FastAPI side
 - Request logging and better error responses
 - Deployment configuration

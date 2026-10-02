@@ -5,7 +5,23 @@ import app from "../src/app.js";
 import { UPLOADS_DIR } from "../src/config.js";
 import type { PredictionResult } from "../src/types/prediction.js";
 
-// A tiny fake video (the content doesn't matter, only the mimetype)
+// Minimal MP4 header ("ftyp" box) - enough for the content check to detect a real MP4
+const mp4Video = Buffer.concat([
+    Buffer.from([0x00, 0x00, 0x00, 0x18]),
+    Buffer.from("ftypisom"),
+    Buffer.from([0x00, 0x00, 0x02, 0x00]),
+    Buffer.from("isommp41")
+]);
+
+// Minimal QuickTime header - detected as video/quicktime (.mov)
+const movVideo = Buffer.concat([
+    Buffer.from([0x00, 0x00, 0x00, 0x14]),
+    Buffer.from("ftypqt  "),
+    Buffer.from([0x00, 0x00, 0x02, 0x00]),
+    Buffer.from("qt  ")
+]);
+
+// Claims to be a video, but the bytes are not a video file
 const fakeVideo = Buffer.from("fake video content");
 
 describe("POST /api/predict", () => {
@@ -24,7 +40,7 @@ describe("POST /api/predict", () => {
         expect(res.body.error).toBe("No file uploaded");
     });
 
-    it("rejects files that are not videos", async () => {
+    it("returns 415 when the file type is not a video", async () => {
         const res = await request(app)
             .post("/api/predict")
             .attach("video", Buffer.from("hello"), {
@@ -32,8 +48,29 @@ describe("POST /api/predict", () => {
                 contentType: "text/plain"
             });
 
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(415);
         expect(res.body.error).toBe("Only video files are allowed");
+    });
+
+    it("returns 415 when the file content is not a real video", async () => {
+        const fetchMock = vi.fn();
+        vi.stubGlobal("fetch", fetchMock);
+
+        const filesBefore = fs.readdirSync(UPLOADS_DIR);
+
+        const res = await request(app)
+            .post("/api/predict")
+            .attach("video", fakeVideo, {
+                filename: "clip.mp4",
+                contentType: "video/mp4"
+            });
+
+        expect(res.status).toBe(415);
+        expect(res.body.error).toBe("File content is not a valid video");
+
+        // The model service must not be called, and the file must be cleaned up
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(fs.readdirSync(UPLOADS_DIR)).toEqual(filesBefore);
     });
 
     it("returns 413 when the file is larger than 20MB", async () => {
@@ -68,7 +105,7 @@ describe("POST /api/predict", () => {
 
         const res = await request(app)
             .post("/api/predict")
-            .attach("video", fakeVideo, {
+            .attach("video", mp4Video, {
                 filename: "clip.mp4",
                 contentType: "video/mp4"
             });
@@ -84,6 +121,28 @@ describe("POST /api/predict", () => {
         expect(fs.readdirSync(UPLOADS_DIR)).toEqual(filesBefore);
     });
 
+    it("sends the detected video type to the model service", async () => {
+        const fetchMock = vi.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({})
+        });
+        vi.stubGlobal("fetch", fetchMock);
+
+        // The browser-reported type is wrong on purpose: the detected type must win
+        await request(app)
+            .post("/api/predict")
+            .attach("video", movVideo, {
+                filename: "clip.mp4",
+                contentType: "video/mp4"
+            });
+
+        const body = fetchMock.mock.calls[0][1].body as FormData;
+        const sentFile = body.get("video") as File;
+
+        expect(sentFile.type).toBe("video/quicktime");
+        expect(sentFile.name).toBe("video.mov");
+    });
+
     it("returns 500 when the model service fails", async () => {
         vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
             ok: false,
@@ -92,7 +151,7 @@ describe("POST /api/predict", () => {
 
         const res = await request(app)
             .post("/api/predict")
-            .attach("video", fakeVideo, {
+            .attach("video", mp4Video, {
                 filename: "clip.mp4",
                 contentType: "video/mp4"
             });
