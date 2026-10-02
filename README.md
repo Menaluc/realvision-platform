@@ -1,5 +1,7 @@
 # RealVision
 
+[![CI](https://github.com/Menaluc/realvision-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Menaluc/realvision-platform/actions/workflows/ci.yml)
+
 Deepfake video detection platform (backend API, with a client and cloud deployment planned).
 
 A client uploads a video, the Node.js API validates and forwards it to a Python ML inference service, and the predicted label (`real` / `fake`) with confidence is returned as JSON.
