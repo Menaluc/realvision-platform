@@ -20,8 +20,8 @@ app.use(morgan("dev", {
     skip: () => process.env.NODE_ENV === "test"
 }));
 
-// Serve the frontend (public/index.html) at "/"
-app.use(express.static(path.join(import.meta.dirname, "..", "public")));
+// Serve the built React client (client/dist) at "/"
+app.use(express.static(path.join(import.meta.dirname, "..", "client", "dist")));
 
 // Use prediction routes under /api
 app.use("/api", predictRouter);

@@ -1,15 +1,16 @@
 # RealVision
 
-Deepfake video detection platform (backend API, with a client and cloud deployment planned).
+Deepfake video detection platform: a React client, a Node.js API and a Python ML inference service (cloud deployment planned).
 
-A client uploads a video, the Node.js API validates and forwards it to a Python ML inference service, and the predicted label (`real` / `fake`) with confidence is returned as JSON.
+The React client uploads a video, the Node.js API validates and forwards it to a Python ML inference service, and the predicted label (`real` / `fake`) with confidence is returned as JSON.
 
 ## Architecture
 
 ```text
-Client → Node.js / Express (Multer) → FastAPI → PyTorch model → Prediction
+React client → Node.js / Express (Multer) → FastAPI → PyTorch model → Prediction
 ```
 
+- **React client** — upload screen and result screen (verdict, confidence, video preview, file details). Express serves its production build.
 - **Node.js / Express** — receives the upload, validates it, forwards it to the model service, cleans up the temp file, and returns the result.
 - **FastAPI** — receives the video, preprocesses it into a frame tensor, runs it through the model, and returns a prediction.
 - **PyTorch model** — an EfficientNet-B0-based video classifier (`VideoOnlyBaseline`) that averages per-frame features and classifies the video as real or fake.
@@ -17,9 +18,18 @@ Client → Node.js / Express (Multer) → FastAPI → PyTorch model → Predicti
 ## Project Structure
 
 ```text
+client/                       React client (Vite + TypeScript)
+  src/App.tsx                 Picks the screen from the analysis state
+  src/hooks/useVideoAnalysis.ts  Upload → analyze → result flow (useReducer)
+  src/hooks/analysisReducer.ts   Analysis state machine
+  src/api/                    Calls to the Express API
+  src/views/                  UploadView, ResultView
+  src/components/             Dropzone, VerdictBadge, MetaGrid, VideoPreview, icons
+  src/styles/                 Global and per-view CSS
+
 src/                          Node.js API (TypeScript)
   server.ts                   Entry point, starts the HTTP server
-  app.ts                      Express app, static files, error handling
+  app.ts                      Express app, serves client/dist, error handling
   config.ts                   Shared paths (uploads directory)
   routes/predict.routes.ts    /predict route + Multer upload config
   controllers/predict.controller.ts
@@ -79,6 +89,11 @@ All errors are returned as JSON: `{ "error": "<message>" }`.
 
 ## Tech Stack
 
+**Client**
+- React 19 + TypeScript
+- Vite
+- Vitest + React Testing Library (tests)
+
 **Node.js API**
 - TypeScript
 - Express 5
@@ -101,6 +116,7 @@ All errors are returned as JSON: `{ "error": "<message>" }`.
 
 ```bash
 npm install
+npm install --prefix client
 ```
 
 Create a `.env` file in the project root:
@@ -110,13 +126,14 @@ PORT=3000
 MODEL_SERVICE_URL=http://localhost:8000/predict
 ```
 
-Run the server (development):
+Run in development (two terminals):
 
 ```bash
-npm run devStart
+npm run devStart      # Express API on http://localhost:3000
+npm run dev:client    # Vite dev server on http://localhost:5173, proxies /api to Express
 ```
 
-Run the server (production):
+Run in production (`build` compiles the API to `dist/` and the client to `client/dist/`, which Express serves at `/`):
 
 ```bash
 npm run build
@@ -128,12 +145,12 @@ Binds to `process.env.PORT` (falls back to `3000` if unset).
 Other scripts:
 
 ```bash
-npm test            # run API tests
-npm run typecheck   # TypeScript type checking
-npm run lint        # ESLint
+npm test            # run API and client tests
+npm run typecheck   # TypeScript type checking (API + client)
+npm run lint        # ESLint (API + client)
 ```
 
-The API will be available at `http://localhost:3000`.
+In production the app and API are both available at `http://localhost:3000`.
 
 ### ML Inference Service
 
@@ -173,6 +190,7 @@ Implemented:
 - File content validation (detects the real video type from the file's bytes)
 - Temporary file cleanup on the FastAPI side
 - Request logging and consistent JSON error responses
+- React client (Vite + TypeScript) with client tests
 
 Planned:
 

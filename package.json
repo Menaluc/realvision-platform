@@ -5,12 +5,13 @@
   "main": "src/server.ts",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && npm run build --prefix client",
     "start": "node dist/server.js",
-    "devStart": "tsx watch --ignore uploads/ src/server.ts",
-    "lint": "eslint src tests",
-    "typecheck": "tsc",
-    "test": "vitest run"
+    "devStart": "tsx watch --ignore uploads/ --ignore client/ src/server.ts",
+    "dev:client": "npm run dev --prefix client",
+    "lint": "eslint src tests && npm run lint --prefix client",
+    "typecheck": "tsc && npm run typecheck --prefix client",
+    "test": "vitest run --dir tests && npm test --prefix client"
   },
   "keywords": [],
   "author": "",
