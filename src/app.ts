@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import express, { type NextFunction, type Request, type Response } from "express";
 import multer from "multer";
+import morgan from "morgan";
 import { UPLOADS_DIR } from "./config.js";
 import { HttpError } from "./errors.js";
 
@@ -13,11 +14,24 @@ fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const app = express();
 
+// Log every request: method, path, status, response time
+// (skipped in tests to keep the test output clean)
+app.use(morgan("dev", {
+    skip: () => process.env.NODE_ENV === "test"
+}));
+
 // Serve the frontend (public/index.html) at "/"
 app.use(express.static(path.join(import.meta.dirname, "..", "public")));
 
 // Use prediction routes under /api
 app.use("/api", predictRouter);
+
+// Unknown API routes return JSON instead of Express's default HTML page
+app.use("/api", (req: Request, res: Response) => {
+    res.status(404).json({
+        error: "Not found"
+    });
+});
 
 // Handle upload errors
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -33,10 +47,18 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
                 error: "Maximum file size is 20MB"
             });
         }
+
+        // Other upload problems are client mistakes (e.g. wrong field name)
+        return res.status(400).json({
+            error: err.message
+        });
     }
 
+    // Unexpected errors: log the details, but don't expose them to the client
+    console.error("Unhandled error:", err);
+
     return res.status(500).json({
-        error: err.message || "Something went wrong"
+        error: "Something went wrong"
     });
 });
 

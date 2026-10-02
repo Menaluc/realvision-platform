@@ -66,11 +66,16 @@ Uploads one video for deepfake analysis.
 
 | Status | Cause |
 | --- | --- |
-| 400 | No file uploaded |
+| 400 | No file uploaded, or file sent under a field other than `video` |
+| 404 | Unknown API route |
 | 413 | File exceeds 20MB |
 | 415 | File is not declared as a video (`Only video files are allowed`) |
 | 415 | File content is not a real video (`File content is not a valid video`) |
-| 500 | Inference service error / unexpected failure |
+| 500 | Unexpected server error (details are logged, not returned) |
+| 502 | Model service responded with an error |
+| 503 | Model service is unreachable |
+
+All errors are returned as JSON: `{ "error": "<message>" }`.
 
 ## Tech Stack
 
@@ -79,6 +84,8 @@ Uploads one video for deepfake analysis.
 - Express 5
 - Multer (file uploads)
 - dotenv
+- morgan (request logging)
+- file-type (video content detection)
 - Vitest + Supertest (tests)
 
 **ML Inference Service**
@@ -165,8 +172,8 @@ Implemented:
 - TypeScript migration of the Node.js API
 - File content validation (detects the real video type from the file's bytes)
 - Temporary file cleanup on the FastAPI side
+- Request logging and consistent JSON error responses
 
 Planned:
 
-- Request logging and better error responses
 - Deployment configuration

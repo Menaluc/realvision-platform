@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import type { FileTypeResult } from "file-type";
 import type { PredictionResult } from "../types/prediction.js";
+import { HttpError } from "../errors.js";
 
 // Process the uploaded video
 const predictVideo = async (
@@ -35,15 +36,24 @@ const predictVideo = async (
     }
 
     // Send the video to FastAPI
-    const response = await fetch(modelServiceUrl, {
-        method: "POST",
-        body: formData
-    });
+    let response: Response;
+
+    try {
+        response = await fetch(modelServiceUrl, {
+            method: "POST",
+            body: formData
+        });
+    } catch (error) {
+        // fetch only throws when the service can't be reached at all
+        console.error("Model service is unreachable:", error);
+        throw new HttpError(503, "Model service is unavailable");
+    }
 
     // Handle FastAPI errors
     if (!response.ok) {
-        throw new Error(
-            `FastAPI returned status ${response.status}`
+        throw new HttpError(
+            502,
+            `Model service returned status ${response.status}`
         );
     }
 

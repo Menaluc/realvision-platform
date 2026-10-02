@@ -2,6 +2,7 @@ import fs from "fs/promises";
 import type { Request, Response } from "express";
 import { fileTypeFromFile } from "file-type";
 import * as inferenceService from "../services/inference.service.js";
+import { HttpError } from "../errors.js";
 
 // Handle prediction request
 const predictController = async (req: Request, res: Response) => {
@@ -32,9 +33,18 @@ const predictController = async (req: Request, res: Response) => {
         return res.status(200).json(result);
 
     } catch (error) {
-        // Handle errors from the service / FastAPI
+        // Errors with a known status (e.g. model service down) keep it
+        if (error instanceof HttpError) {
+            return res.status(error.status).json({
+                error: error.message
+            });
+        }
+
+        // Anything else is an unexpected server error
+        console.error("Prediction failed:", error);
+
         return res.status(500).json({
-            error: error instanceof Error ? error.message : "Unknown error"
+            error: "Something went wrong"
         });
 
     } finally {

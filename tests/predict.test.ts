@@ -40,6 +40,18 @@ describe("POST /api/predict", () => {
         expect(res.body.error).toBe("No file uploaded");
     });
 
+    it("returns 400 when the file is sent under the wrong field name", async () => {
+        const res = await request(app)
+            .post("/api/predict")
+            .attach("file", mp4Video, {
+                filename: "clip.mp4",
+                contentType: "video/mp4"
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe("Unexpected file field");
+    });
+
     it("returns 415 when the file type is not a video", async () => {
         const res = await request(app)
             .post("/api/predict")
@@ -143,10 +155,10 @@ describe("POST /api/predict", () => {
         expect(sentFile.name).toBe("video.mov");
     });
 
-    it("returns 500 when the model service fails", async () => {
+    it("returns 502 when the model service responds with an error", async () => {
         vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
             ok: false,
-            status: 503
+            status: 500
         }));
 
         const res = await request(app)
@@ -156,7 +168,34 @@ describe("POST /api/predict", () => {
                 contentType: "video/mp4"
             });
 
-        expect(res.status).toBe(500);
-        expect(res.body.error).toBe("FastAPI returned status 503");
+        expect(res.status).toBe(502);
+        expect(res.body.error).toBe("Model service returned status 500");
+    });
+
+    it("returns 503 when the model service is unreachable", async () => {
+        // This is what fetch throws when nothing is listening on the URL
+        vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("fetch failed")));
+
+        const filesBefore = fs.readdirSync(UPLOADS_DIR);
+
+        const res = await request(app)
+            .post("/api/predict")
+            .attach("video", mp4Video, {
+                filename: "clip.mp4",
+                contentType: "video/mp4"
+            });
+
+        expect(res.status).toBe(503);
+        expect(res.body.error).toBe("Model service is unavailable");
+        expect(fs.readdirSync(UPLOADS_DIR)).toEqual(filesBefore);
+    });
+});
+
+describe("unknown API routes", () => {
+    it("returns 404 as JSON", async () => {
+        const res = await request(app).get("/api/does-not-exist");
+
+        expect(res.status).toBe(404);
+        expect(res.body.error).toBe("Not found");
     });
 });
