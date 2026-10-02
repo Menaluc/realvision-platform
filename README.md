@@ -116,8 +116,10 @@ All errors are returned as JSON: `{ "error": "<message>" }`.
 
 ```bash
 npm install
-npm install --prefix client
+npm ci --prefix client
 ```
+
+To add a package to the client, run `npm install <package>` from inside `client/` (not `npm install --prefix client` from the root, which adds the root project as a client dependency).
 
 Create a `.env` file in the project root:
 
